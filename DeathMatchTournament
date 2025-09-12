@@ -1,0 +1,30 @@
+# לשנות את num of games
+class DeathMatchTournament(Tournament):
+    def __init__(self, strategies, win_goal=3):
+        if len(strategies) != 2:
+            raise ValueError("DeathMatchTournament requires exactly 2 strategies!")
+        super().__init__(strategies, mode="DeathMatchTournament")
+        self.win_goal = win_goal
+        self.num_of_games = 1
+
+    def run(self):
+        history = []
+        scores = {s.__class__.__name__: 0 for s in self.strategies}
+        while max(scores.values()) < self.win_goal:
+            self.num_of_games +=1
+            winner, result_str = super().run(self.strategies[0], self.strategies[1])
+            # עדכון ניקוד
+            if winner:
+                scores[winner.__class__.__name__] += 1
+            # שמירת ההיסטוריה של המשחק
+            history.append({
+                "player1": self.strategies[0].__class__.__name__,
+                "player2": self.strategies[1].__class__.__name__,
+                "winner": result_str
+            })
+
+        champion = max(scores, key=lambda k: scores[k])
+        print(f"Champion: {champion}")
+        print("History of matches:")
+        for match in history:
+            print(f"{match['player1']} vs {match['player2']} → Winner: {match['winner']}")

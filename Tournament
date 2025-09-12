@@ -1,0 +1,73 @@
+import json
+import csv
+from Game import Game, GameResult
+from envelope import Envelope
+
+#לשנות את stats
+class Tournament:
+    def __init__(self, strategies, mode):
+        self.strategies = strategies
+        self.mode = mode
+        self.results = {s.__class__.__name__: {"wins": 0, "games_played": 0}
+                        for s in strategies}
+        self.results["log"] = []
+
+    def run(self, strat1, strat2):
+        """Run a single match between two strategies and update results/log"""
+        envelopes = [Envelope() for _ in range(100)]
+        game1 = Game(strat1, envelopes)
+        result1 = GameResult(envelopes, game1)
+        game2 = Game(strat2, envelopes)
+        result2 = GameResult(envelopes, game2)
+
+        # Update games played
+        self.results[strat1.__class__.__name__]["games_played"] += 1
+        self.results[strat2.__class__.__name__]["games_played"] += 1
+
+        # Determine winner
+        if result1.chosen_amount > result2.chosen_amount:
+            winner = strat1
+            result_str = strat1.__class__.__name__
+            self.results[winner.__class__.__name__]["wins"] += 1
+        elif result2.chosen_amount > result1.chosen_amount:
+            winner = strat2
+            result_str = strat2.__class__.__name__
+            self.results[winner.__class__.__name__]["wins"] += 1
+        else:
+            winner = None
+            result_str = "Draw"
+            self.results[strat1.__class__.__name__]["wins"] += 1
+            self.results[strat2.__class__.__name__]["wins"] += 1
+
+        # Log the match
+        self.results["log"].append({
+            "player1": strat1.__class__.__name__,
+            "chosen1": result1.chosen_amount,
+            "player2": strat2.__class__.__name__,
+            "chosen2": result2.chosen_amount,
+            "winner": result_str
+        })
+        print(f"{strat1.__class__.__name__} vs {strat2.__class__.__name__} → Winner: {result_str}")
+        return winner
+
+    def get_stats(self):
+        stats = {}
+        for strat, data in self.results.items():
+            wins = data.get('wins', 0)
+            games = data.get('games_played', 0)
+            win_rate = wins / games if games > 0 else 0
+            stats[strat] = {'wins': wins, 'games_played': games, 'win_rate': round(win_rate, 2)}
+        return stats
+
+    def save_log_json(self, filename):
+        with open(filename, "w") as f:
+            json.dump(self.results["log"], f, indent=4)
+
+    def save_log_csv(self, filename):
+        if not self.results["log"]:
+            return
+        keys = self.results["log"][0].keys()
+        with open(filename, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=keys)
+            writer.writeheader()
+            writer.writerows(self.results["log"])

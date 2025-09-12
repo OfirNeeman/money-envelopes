@@ -1,0 +1,21 @@
+from envelope import Envelope
+
+class GameResult:
+    def __init__(self, envelopes, game, strategies):
+        chosen_envelope, opened_count = game.play()
+        self.chosen_amount = chosen_envelope.amount
+        self.max_amount = self.find_max_envelope(envelopes)
+        self.steps = opened_count
+        self.success = (self.max_amount == chosen_envelope.amount)
+        self.ratio = opened_count/len(envelopes)
+
+    def find_max_envelope(self, envelopes):
+        max_envelope = envelopes[0]
+        max_amount = max_envelope.amount
+        i = 1
+        while i < len(envelopes):
+            if envelopes[i].amount > max_amount:
+                max_envelope = envelopes[i]
+                max_amount = max_envelope.amount
+            i += 1
+        return max_amount

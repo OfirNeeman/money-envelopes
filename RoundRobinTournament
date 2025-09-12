@@ -1,0 +1,27 @@
+# num of games לשנות
+class RoundRobinTournament(Tournament):
+    def __init__(self, strategies, rounds=1):
+        super().__init__(strategies, "RoundRobin")
+        self.rounds = rounds
+        self.num_of_games = 6 * rounds
+
+    def run(self):
+        scores = {s.__class__.__name__: 0 for s in self.strategies}
+
+        for i in range(len(self.strategies)):
+            for j in range(i + 1, len(self.strategies)):
+                strat1 = self.strategies[i]
+                strat2 = self.strategies[j]
+
+                for r in range(self.rounds):
+                    winner, result_str = super().run(self.strategies[i], self.strategies[j])
+                    if winner:
+                        scores[winner.__class__.__name__] += 3
+                    else:
+                        scores[self.strategies[i].__class__.__name__] += 1
+                        scores[self.strategies[j].__class__.__name__] += 1
+                    print(f"Round {r+1}: {strat1.__class__.__name__} vs {strat2.__class__.__name__} → {result_str}")
+
+                print("\n total points:")
+                for strat, score in sorted(scores.items(), key=lambda x: x[1], reverse=True):
+                    print(f"{strat}: {score} points")

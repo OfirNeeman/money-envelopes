@@ -1,11 +1,9 @@
-# לשנות את num of games
 class DeathMatchTournament(Tournament):
     def __init__(self, strategies, win_goal=3):
         if len(strategies) != 2:
             raise ValueError("DeathMatchTournament requires exactly 2 strategies!")
         super().__init__(strategies, mode="DeathMatchTournament")
         self.win_goal = win_goal
-        self.num_of_games = 1
 
     def run(self):
         history = []

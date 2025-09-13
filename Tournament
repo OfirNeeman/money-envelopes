@@ -2,8 +2,8 @@ import json
 import csv
 from Game import Game, GameResult
 from envelope import Envelope
+import statistics
 
-#לשנות את stats
 class Tournament:
     def __init__(self, strategies, mode):
         self.strategies = strategies
@@ -52,12 +52,25 @@ class Tournament:
 
     def get_stats(self):
         stats = {}
+        total_games = sum(v.get("games_played", 0) for v in self.results.values() if isinstance(v, dict))
         for strat, data in self.results.items():
-            wins = data.get('wins', 0)
-            games = data.get('games_played', 0)
-            win_rate = wins / games if games > 0 else 0
-            stats[strat] = {'wins': wins, 'games_played': games, 'win_rate': round(win_rate, 2)}
-        return stats
+            if strat == "log":
+                continue
+            wins = data["wins"]
+            games = data["games_played"]
+            profits = data.get("profits", [])
+            avg_profit = round(statistics.mean(profits), 2) if profits else 0
+            consistency = round(statistics.pstdev(profits), 2) if len(profits) > 1 else 0
+            win_rate = round(wins / games, 2) if games > 0 else 0
+
+            stats[strat] = {
+                "games_played": games,
+                "wins": wins,
+                "win_rate": win_rate,
+                "avg_profit": avg_profit,
+                "consistency": consistency
+            }
+        return stats, total_games
 
     def save_log_json(self, filename):
         with open(filename, "w") as f:

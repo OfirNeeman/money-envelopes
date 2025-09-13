@@ -4,7 +4,6 @@ class LeagueTournament(Tournament):
         super().__init__(strategies, mode="LeagueTournament")
         self.table = {s.__class__.__name__: {"games_played": 0, "wins": 0, "losses": 0}
                       for s in strategies}
-        self.num_of_games = 6
 
     def run(self):
         players = self.strategies

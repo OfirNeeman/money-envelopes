@@ -36,9 +36,6 @@ class EliminationTournament(Tournament):
                 next_round.append(winner)
                 matches.append((strat1.__class__.__name__, strat2.__class__.__name__, result_str))
 
-                print(
-                    f"{strat1.__class__.__name__} vs {strat2.__class__.__name__} → Winner: {winner.__class__.__name__}")
-
             tree.append(matches)
             players = next_round
 

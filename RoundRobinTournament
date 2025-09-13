@@ -1,4 +1,3 @@
-# num of games לשנות
 class RoundRobinTournament(Tournament):
     def __init__(self, strategies, rounds=1):
         super().__init__(strategies, "RoundRobin")

@@ -1,4 +1,3 @@
-# לתקן num of games
 class LeagueTournament(Tournament):
     def __init__(self, strategies):
         super().__init__(strategies, mode="LeagueTournament")

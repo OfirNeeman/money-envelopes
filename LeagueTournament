@@ -1,0 +1,41 @@
+# לתקן num of games
+class LeagueTournament(Tournament):
+    def __init__(self, strategies):
+        super().__init__(strategies, mode="LeagueTournament")
+        self.table = {s.__class__.__name__: {"games_played": 0, "wins": 0, "losses": 0}
+                      for s in strategies}
+        self.num_of_games = 6
+
+    def run(self):
+        players = self.strategies
+        for i in range(len(players)):
+            for j in range(len(players)):
+                if i==j:
+                    continue
+                else:
+                        strat1 = players[i]
+                        strat2 = players[j]
+
+                        winner, result_str = super().run(strat1, strat2)
+
+                        # עדכון טבלה
+                        self.table[strat1.__class__.__name__]["games_played"] += 1
+                        self.table[strat2.__class__.__name__]["games_played"] += 1
+
+                        if winner:
+                            self.table[winner.__class__.__name__]["wins"] += 1
+                            self.table[winner.__class__.__name__]["points"] += 1
+                            loser = strat1 if winner == strat2 else strat2
+                            self.table[loser.__class__.__name__]["losses"] += 1
+                        else:  # draw
+                            self.table[strat1.__class__.__name__]["points"] += 1
+                            self.table[strat2.__class__.__name__]["points"] += 1
+                        print(f"{strat1.__class__.__name__} vs {strat2.__class__.__name__} → {result_str}")
+
+
+        sorted_table = sorted(self.table.items(), key=lambda x: x[1]["points"], reverse=True)
+        print(f"{'Strategy':<20} {'Games':<6} {'Wins':<6} {'Losses':<6} {'Points':<6}")
+        print("-" * 50)
+
+        for name, stats in sorted_table:
+            print(f"{name:<20} {stats['games_played']:<6} {stats['wins']:<6} {stats['losses']:<6} {stats['points']:<6}")

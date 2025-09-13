@@ -3,7 +3,6 @@ class EliminationTournament(Tournament):
     def __init__(self, seed):
         super().__init__(seed, mode="EliminationTournament")
         self.seed = seed
-        self.num_of_games = 3
 
     def run(self):
         players = self.seed.copy()

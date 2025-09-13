@@ -3,7 +3,6 @@ class RoundRobinTournament(Tournament):
     def __init__(self, strategies, rounds=1):
         super().__init__(strategies, "RoundRobin")
         self.rounds = rounds
-        self.num_of_games = 6 * rounds
 
     def run(self):
         scores = {s.__class__.__name__: 0 for s in self.strategies}

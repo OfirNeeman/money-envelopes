@@ -1,1 +1,124 @@
+from tournament import *
+import math
+import string
+import random
+import itertools
+
+
 class ChampionshipTournament(Tournament):
+    def __init__(self, strategies):
+        super().__init__(strategies, "ChampionshipTournament")
+        self.playoffs = []
+        # אני לא ממש יודעת איך עובדים הבתים אבל ממה שהבנתי לרוב יש 4 קבוצות בבית
+        if len(strategies) <= 16:
+            number_of_groups = math.ceil(len(strategies) / 4)
+        else:
+            number_of_groups = 8
+
+        # מערבבים את רשימת האסטרטגיות
+        shuffled = strategies[:]  # עושים עותק כדי לא להרוס את הרשימה המקורית
+        random.shuffle(shuffled)
+
+        # יוצרים מילון של בתים
+        self.groups = {string.ascii_uppercase[i]: [] for i in range(number_of_groups)}
+
+        # מחלקים את האסטרטגיות לבתים לפי סבב
+        group_names = list(self.groups.keys())
+        for i, s in enumerate(shuffled):
+            group = group_names[i % number_of_groups]
+            self.groups[group].append(s)
+
+        self.group_results = {}  # מילון חדש במחלקה
+
+    def internal_league(self, group):
+        """ליגה פנימית. בכל בית כל הקבוצות ישחקו אחת מול השנייה, כאשר נספור לכל אחת כמות ניצחונות"""
+        scores = {team: 0 for team in group}
+        for a, b in itertools.combinations(group, 2):
+            winner, desc = super().run(a, b)
+            print(desc)  # מדפיסים את התיאור של המשחק
+            scores[winner] += 1  # מעדכנים ניצחון
+        return scores
+
+    def group_stage(self, groups):
+        winners = []
+        self.group_results = {}
+        for name, group in groups.items():
+            print(f"\n--- בית {name} ---")
+            scores = self.internal_league(group)
+            winner = max(scores, key=scores.get)
+            print(f"בית {name} – מנצחת: {winner}, טבלה: {scores}")
+            winners.append(winner)
+            self.group_results[name] = {
+                "scores": scores,
+                "winner": winner
+            }
+        return winners
+
+    def playoff(self, teams):
+        """מריץ פלייאוף עד שנשארת מנצחת ושומר את רשימת המשחקים"""
+        round_num = 1
+        current = teams
+        while len(current) > 1:
+            print(f"\nפלייאוף – סיבוב {round_num}")
+            winners = []
+            for i in range(0, len(current), 2):
+                if i + 1 >= len(current):
+                    winners.append(current[i])  # עולה אוטומטית
+                    # שומרים במשחקים גם "עלייה אוטומטית"
+                    self.playoffs.append({
+                        "round": round_num,
+                        "team1": current[i],
+                        "team2": None,
+                        "winner": current[i],
+                        "desc": f"{current[i]} עלתה אוטומטית"
+                    })
+                    continue
+
+                a, b = current[i], current[i + 1]
+                winner, desc = super().run(a, b)
+                print(desc)
+                winners.append(winner)
+
+                # שומרים את המשחק ברשימת הפלייאוף
+                self.playoffs.append({
+                    "round": round_num,
+                    "team1": a,
+                    "team2": b,
+                    "winner": winner,
+                    "desc": desc
+                })
+
+            current = winners
+            round_num += 1
+
+        return current[0]
+
+    def print_groups(self):
+        print("\n=== טבלת בתים ===")
+        for name, data in self.group_results.items():
+            print(f"\nבית {name}:")
+            for team, score in data["scores"].items():
+                print(f"  {team}: {score} ניצחונות")
+            print(f"→ מנצחת הבית: {data['winner']}")
+
+    def print_playoffs(self):
+        print("\n=== עץ הפלייאוף ===")
+        for game in self.playoffs:
+            rnd = game["round"]
+            t1 = game["team1"]
+            t2 = game["team2"] if game["team2"] else "—"
+            w = game["winner"]
+            print(f"סיבוב {rnd}: {t1} vs {t2} → מנצחת: {w}")
+
+    def run(self, a=None, b=None):
+        if a is not None and b is not None:
+            return super().run(a, b)
+
+        winners = self.group_stage(self.groups)
+        champion = self.playoff(winners)
+
+        print("\n=== סיכום ===")
+        self.print_groups()
+        self.print_playoffs()
+        print(f"\n🏆 האלופה: {champion}")
+        return champion

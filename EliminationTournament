@@ -5,45 +5,46 @@ class EliminationTournament(Tournament):
 
     def run(self):
         players = self.seed.copy()
-        round_num=0
+        round_num = 0
         tree = []
-        next_round = []
-        matches = []
 
-        # BYE if odd
-        if len(players) % 2 != 0:
-            bye_player = players.pop()
-            next_round.append(bye_player)
-            self.results[bye_player.__class__.__name__]["wins"] += 1
-            self.results[bye_player.__class__.__name__]["games_played"] += 1
-            self.results["log"].append({
-                "round": round_num,
-                "player1": bye_player.__class__.__name__,
-                "player2": "BYE",
-                "winner": bye_player.__class__.__name__
-            })
-            matches.append((bye_player.__class__.__name__, "BYE", bye_player.__class__.__name__))
-            print(f"{bye_player.__class__.__name__} gets a BYE")
-
-        while len(players)>1:
-            round_num+=1
+        while len(players) > 1:
+            round_num += 1
             print(f"\n=== Round {round_num} ===")
+            matches = []
+            next_round = []
+
+            # BYE אם מספר אי-זוגי
+            if len(players) % 2 != 0:
+                bye_player = players.pop()
+                next_round.append(bye_player)
+                self.results[bye_player.__class__.__name__]["wins"] += 1
+                self.results[bye_player.__class__.__name__]["games_played"] += 1
+                self.results["log"].append({
+                    "round": round_num,
+                    "player1": bye_player.__class__.__name__,
+                    "player2": "BYE",
+                    "winner": bye_player.__class__.__name__
+                })
+                matches.append((bye_player.__class__.__name__, "BYE", bye_player.__class__.__name__))
+                print(f"{bye_player.__class__.__name__} gets a BYE")
+
+            # משחקים רגילים
             for i in range(0, len(players), 2):
                 strat1 = players[i]
                 strat2 = players[i + 1]
-
                 winner, result_str = super().run(strat1, strat2)
                 next_round.append(winner)
                 matches.append((strat1.__class__.__name__, strat2.__class__.__name__, result_str))
 
             tree.append(matches)
-            players = next_round
+            players = next_round[:]  # מעבר לסיבוב הבא
 
-
+        # סיכום
         for round_number, round_games in enumerate(tree, start=1):
-            print(f"Round {round_number}:")
+            print(f"\nRound {round_number}:")
             for game in round_games:
                 player1, player2, winner = game
                 print(f"  {player1} vs {player2} → Winner: {winner}")
-            print()
-        print(f"Champion: {players}")
+
+        print(f"\nChampion: {players[0].__class__.__name__}")

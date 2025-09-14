@@ -20,6 +20,6 @@ class RoundRobinTournament(Tournament):
                         scores[self.strategies[j].__class__.__name__] += 1
                     print(f"Round {r+1}: {strat1.__class__.__name__} vs {strat2.__class__.__name__} → {result_str}")
 
-                print("\n total points:")
-                for strat, score in sorted(scores.items(), key=lambda x: x[1], reverse=True):
-                    print(f"{strat}: {score} points")
+        print("\n total points:")
+        for strat, score in sorted(scores.items(), key=lambda x: x[1], reverse=True):
+            print(f"{strat}: {score} points")

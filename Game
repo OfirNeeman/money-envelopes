@@ -2,23 +2,17 @@ from envelope import Envelope
 
 class Game:
 
-    def __init__(self, strategy, envelopes):
+    def __init__(self, strategy):
         self.strategy = strategy
-        self.envelopes = envelopes
         self.result = None
 
-    def play(self, strategies):
-        if isinstance(self.strategy, type(strategies[2])):
-            N = input(f'enter N max values: ')
-            strategies[2].N = int(N)
-        elif isinstance(self.strategy, type(strategies[3])):
-            p = input(f'enter 0-1 number for group size (defualt=0.25)')
-            strategies[3].percent = p
+    def play(self):
         self.result = self.strategy.play()
         return self.result
 
-    def reset(self, new_strategy=None):
-        self.envelopes = [Envelope() for _ in range(len(self.envelopes))]
+    def reset(self):
+        envelopes = []
+        for i in range(100):
+            envelopes.append(Envelope())
+        self.strategy.envelopes = envelopes
         self.result = None
-        if new_strategy:
-            self.strategy = new_strategy

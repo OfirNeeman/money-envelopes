@@ -6,9 +6,9 @@ class RoundRobinTournament(Tournament):
     def run(self):
         scores = {s.__class__.__name__: 0 for s in self.strategies}
 
-        for i in range(len(self.strategies)):
-            for j in range(i + 1, len(self.strategies)):
-                strat1 = self.strategies[i]
+        for d in range(len(self.strategies)):
+            for j in range(d + 1, len(self.strategies)):
+                strat1 = self.strategies[d]
                 strat2 = self.strategies[j]
 
                 for r in range(self.rounds):
@@ -16,7 +16,7 @@ class RoundRobinTournament(Tournament):
                     if winner:
                         scores[winner.__class__.__name__] += 3
                     else:
-                        scores[self.strategies[i].__class__.__name__] += 1
+                        scores[self.strategies[d].__class__.__name__] += 1
                         scores[self.strategies[j].__class__.__name__] += 1
                     print(f"Round {r+1}: {strat1.__class__.__name__} vs {strat2.__class__.__name__} → {result_str}")
 

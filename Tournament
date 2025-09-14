@@ -1,8 +1,9 @@
 import json
 import csv
-from Game import Game, GameResult
-from envelope import Envelope
 import statistics
+from envelope import Envelope
+from Game import Game, GameResult
+from strategy import RandomStrategy, StopAfterNOpensStrategy, BetterThanPercentStrategy, MaxAfterNStrategy
 
 class Tournament:
     def __init__(self, strategies, mode):
@@ -14,11 +15,14 @@ class Tournament:
 
     def run(self, strat1, strat2):
         """Run a single match between two strategies and update results/log"""
-        envelopes = [Envelope() for _ in range(100)]
-        game1 = Game(strat1, envelopes)
-        result1 = GameResult(envelopes, game1)
-        game2 = Game(strat2, envelopes)
-        result2 = GameResult(envelopes, game2)
+        #envelopes = [Envelope() for _ in range(100)]
+        game1 = Game(strat1)
+        result1 = GameResult(game1)
+        game2 = Game(strat2)
+        result2 = GameResult(game2)
+
+        game1.reset()
+        game2.reset()
 
         # Update games played
         self.results[strat1.__class__.__name__]["games_played"] += 1
@@ -48,7 +52,7 @@ class Tournament:
             "winner": result_str
         })
         print(f"{strat1.__class__.__name__} vs {strat2.__class__.__name__} → Winner: {result_str}")
-        return winner
+        return winner, result_str
 
     def get_stats(self):
         stats = {}

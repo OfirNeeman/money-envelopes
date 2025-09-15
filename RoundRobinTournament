@@ -1,25 +1,58 @@
 class RoundRobinTournament(Tournament):
+    """
+    מחלקה לניהול טורניר Round Robin (כל אסטרטגיה משחקת מול כל השאר).
+    
+    Attributes:
+        strategies (list): רשימת האסטרטגיות המשתתפות.
+        rounds (int): מספר הסיבובים שכל זוג אסטרטגיות ישחק ביניהם.
+    """
+
     def __init__(self, strategies, rounds=1):
+        """
+        אתחול הטורניר בפורמט Round Robin.
+
+        Args:
+            strategies (list): רשימת האסטרטגיות.
+            rounds (int): מספר סיבובים לכל צמד אסטרטגיות.
+        """
         super().__init__(strategies, "RoundRobin")
         self.rounds = rounds
 
     def run(self):
+        """
+        מריץ את כל המשחקים בטורניר Round Robin ומחשב ניקוד:
+            - נצחון = 3 נק'
+            - תיקו = 1 נק' לכל צד
+
+        Returns:
+            dict: מילון עם הניקוד המצטבר לכל אסטרטגיה.
+        """
+        # טבלת ניקוד ראשונית
         scores = {s.__class__.__name__: 0 for s in self.strategies}
 
+        # לולאה על כל זוג אסטרטגיות
         for d in range(len(self.strategies)):
             for j in range(d + 1, len(self.strategies)):
                 strat1 = self.strategies[d]
                 strat2 = self.strategies[j]
 
+                # כמה משחקים בין כל זוג (לפי self.rounds)
                 for r in range(self.rounds):
-                    winner, result_str = super().run(self.strategies[i], self.strategies[j])
+                    # קריאה ל־Tournament.run כדי להריץ משחק יחיד
+                    winner, result_str = super().run(strat1, strat2)
+
+                    # עדכון הניקוד לפי התוצאה
                     if winner:
                         scores[winner.__class__.__name__] += 3
                     else:
-                        scores[self.strategies[d].__class__.__name__] += 1
-                        scores[self.strategies[j].__class__.__name__] += 1
+                        scores[strat1.__class__.__name__] += 1
+                        scores[strat2.__class__.__name__] += 1
+
                     print(f"Round {r+1}: {strat1.__class__.__name__} vs {strat2.__class__.__name__} → {result_str}")
 
-        print("\n total points:")
+        # הדפסת סיכום ניקוד
+        print("\nTotal points:")
         for strat, score in sorted(scores.items(), key=lambda x: x[1], reverse=True):
             print(f"{strat}: {score} points")
+
+        return scores

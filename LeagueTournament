@@ -1,5 +1,31 @@
 class LeagueTournament(Tournament):
+    """
+    מחלקה לניהול טורניר ליגה (League Tournament).
+    
+    בפורמט זה כל אסטרטגיה משחקת מול כל שאר האסטרטגיות,
+    הן כ"שחקן ראשון" והן כ"שחקן שני".
+
+    שיטת ניקוד:
+        - ניצחון = 3 נקודות
+        - תיקו   = 1 נקודה לכל צד
+        - הפסד   = 0 נקודות
+
+    Attributes:
+        strategies (list): רשימת האסטרטגיות המשתתפות בטורניר.
+        table (dict): טבלת ביצועים לכל אסטרטגיה, עם:
+            * games_played (int) – מספר משחקים ששוחקו
+            * wins (int) – מספר נצחונות
+            * losses (int) – מספר הפסדים
+            * points (int) – מספר נקודות מצטבר
+    """
+
     def __init__(self, strategies):
+        """
+        אתחול טורניר ליגה.
+
+        Args:
+            strategies (list): רשימת האסטרטגיות המשתתפות.
+        """
         super().__init__(strategies, mode="LeagueTournament")
         self.table = {
             s.__class__.__name__: {"games_played": 0, "wins": 0, "losses": 0, "points": 0}
@@ -7,6 +33,23 @@ class LeagueTournament(Tournament):
         }
 
     def run(self):
+        """
+        מריץ את כל משחקי טורניר הליגה.
+
+        לולאה כפולה עוברת על כל זוג אסטרטגיות:
+        - אם i == j → לא משחקים (אותה אסטרטגיה).
+        - אחרת, מריצים משחק יחיד בין strat1 ל־strat2.
+
+        עדכון תוצאות:
+            * המנצח מקבל 3 נקודות ונחשב לו ניצחון.
+            * המפסיד נרשם לו הפסד.
+            * במקרה של תיקו – כל אחד מהשחקנים מקבל נקודה אחת.
+
+        בסיום, מדפיס טבלה מסודרת עם כל הנתונים.
+
+        Returns:
+            dict: טבלת הליגה (self.table) עם הסטטיסטיקות לכל אסטרטגיה.
+        """
         players = self.strategies
         for i in range(len(players)):
             for j in range(len(players)):
@@ -29,10 +72,9 @@ class LeagueTournament(Tournament):
                     self.table[strat1.__class__.__name__]["points"] += 1
                     self.table[strat2.__class__.__name__]["points"] += 1
 
-        # הדפסה מסודרת
+        # הדפסה מסודרת של טבלת הליגה
         sorted_table = sorted(self.table.items(), key=lambda x: x[1]["points"], reverse=True)
         print(f"{'Strategy':<20} {'Games':<6} {'Wins':<6} {'Losses':<6} {'Points':<6}")
         print("-" * 60)
         for name, stats in sorted_table:
             print(f"{name:<20} {stats['games_played']:<6} {stats['wins']:<6} {stats['losses']:<6} {stats['points']:<6}")
-

@@ -1,0 +1,84 @@
+class DeathMatchTournament(Tournament):
+    """
+    טורניר Death Match:
+    שתי אסטרטגיות בלבד מתמודדות זו מול זו עד שאחת מהן מגיעה ל־win_goal נצחונות.
+    
+    חוקים:
+        - נדרשות בדיוק שתי אסטרטגיות.
+        - כל משחק נערך בין שתי האסטרטגיות.
+        - אם יש תיקו → נבחר מנצח באקראי.
+        - ממשיכים לשחק עד שאחת האסטרטגיות מגיעה ל־win_goal.
+    
+    Attributes:
+        strategies (list): שתי האסטרטגיות המתמודדות.
+        win_goal (int): מספר הנצחונות הדרוש כדי לנצח בטורניר.
+        num_of_games (int): מונה מספר המשחקים ששוחקו עד כה.
+    """
+
+    def __init__(self, strategies, win_goal=3):
+        """
+        אתחול טורניר Death Match.
+
+        Args:
+            strategies (list): שתי האסטרטגיות שישחקו.
+            win_goal (int): מספר הנצחונות הדרוש כדי לזכות (ברירת מחדל: 3).
+
+        Raises:
+            ValueError: אם נמסרו יותר או פחות מ־2 אסטרטגיות.
+        """
+        if len(strategies) != 2:
+            raise ValueError("DeathMatchTournament requires exactly 2 strategies!")
+        super().__init__(strategies, mode="DeathMatchTournament")
+        self.win_goal = win_goal
+        self.num_of_games = 0
+
+    def run(self):
+        """
+        מריץ את טורניר ה־Death Match עד שיש אלוף.
+
+        לוגיקה:
+            - סופרים נצחונות לכל אסטרטגיה.
+            - ממשיכים לשחק עד שאחת מגיעה ל־win_goal.
+            - במקרה של תיקו נבחר מנצח אקראי.
+            - נשמרת היסטוריית כל המשחקים (מספר משחק, יריבים, מנצח).
+
+        הדפסה:
+            - האלוף בסיום.
+            - היסטוריית כל המשחקים בטורניר.
+
+        Returns:
+            None
+        """
+        history = []
+        scores = {s.__class__.__name__: 0 for s in self.strategies}
+
+        # משחקים עד שאחת האסטרטגיות מגיעה ל-win_goal
+        while max(scores.values()) < self.win_goal:
+            self.num_of_games += 1
+            winner, result_str = super().run(self.strategies[0], self.strategies[1])
+
+            if not winner:  # במקרה של תיקו – בחירת מנצח אקראית
+                import random
+                winner = random.choice(self.strategies)
+                result_str = winner.__class__.__name__
+                print(f"Draw → בחירה אקראית: {result_str}")
+
+            # עדכון הניקוד
+            scores[winner.__class__.__name__] += 1
+
+            # שמירת ההיסטוריה
+            history.append({
+                "game": self.num_of_games,
+                "player1": self.strategies[0].__class__.__name__,
+                "player2": self.strategies[1].__class__.__name__,
+                "winner": result_str
+            })
+
+        # הכרזת האלוף
+        champion = max(scores, key=lambda k: scores[k])
+        print(f"\nChampion: {champion}")
+
+        # הדפסת היסטוריית כל המשחקים
+        print("History of matches:")
+        for match in history:
+            print(f"Game {match['game']}: {match['player1']} vs {match['player2']} → Winner: {match['winner']}")

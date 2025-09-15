@@ -1,0 +1,93 @@
+class EliminationTournament(Tournament):
+    """
+    טורניר בשיטת נוקאאוט (Elimination Tournament).
+    
+    בפורמט זה:
+        - השחקנים מתחילים כסיד (seed).
+        - בכל סיבוב משחקים בזוגות.
+        - המפסיד מודח, והמנצח עולה לשלב הבא.
+        - אם מספר המשתתפים אי-זוגי, אחד מהם מקבל BYE ועובר אוטומטית לסיבוב הבא.
+        - ממשיכים עד שנשאר אלוף אחד (Champion).
+    
+    Attributes:
+        seed (list): רשימת האסטרטגיות ההתחלתיות.
+        results (dict): תוצאות הטורניר (מנוהלות במחלקת האב Tournament).
+    """
+
+    def __init__(self, seed):
+        """
+        אתחול טורניר נוקאאוט.
+        
+        Args:
+            seed (list): רשימת האסטרטגיות שמתחילות את הטורניר.
+        """
+        super().__init__(seed, mode="EliminationTournament")
+        self.seed = seed
+
+    def run(self):
+        """
+        מריץ את כל שלבי טורניר הנוקאאוט עד לגמר.
+        
+        לוגיקה:
+            - אם מספר המשתתפים אי-זוגי → שחקן אחד מקבל BYE ועובר לסיבוב הבא.
+            - שאר השחקנים משחקים בזוגות (באמצעות Tournament.run).
+            - בכל סיבוב נשמרת רשימת המשחקים (לצורך הדפסת עץ הטורניר).
+            - ממשיכים עד שנותר מנצח אחד (Champion).
+        
+        הדפסה:
+            - מציג לכל סיבוב את המשחקים והתוצאות.
+            - בסוף מדפיס את האלוף.
+        
+        Returns:
+            None
+        """
+        players = self.seed.copy()
+        round_num = 0
+        tree = []  # שמירת עץ הטורניר (תוצאות כל סיבוב)
+
+        # ריצה עד שנשאר שחקן אחד
+        while len(players) > 1:
+            round_num += 1
+            print(f"\n=== Round {round_num} ===")
+            matches = []
+            next_round = []
+
+            # טיפול ב־BYE במקרה של מספר אי-זוגי
+            if len(players) % 2 != 0:
+                bye_player = players.pop()
+                next_round.append(bye_player)
+
+                # עדכון תוצאות ו־log
+                self.results[bye_player.__class__.__name__]["wins"] += 1
+                self.results[bye_player.__class__.__name__]["games_played"] += 1
+                self.results["log"].append({
+                    "round": round_num,
+                    "player1": bye_player.__class__.__name__,
+                    "player2": "BYE",
+                    "winner": bye_player.__class__.__name__
+                })
+
+                matches.append((bye_player.__class__.__name__, "BYE", bye_player.__class__.__name__))
+                print(f"{bye_player.__class__.__name__} gets a BYE")
+
+            # משחקים רגילים בזוגות
+            for i in range(0, len(players), 2):
+                strat1 = players[i]
+                strat2 = players[i + 1]
+                winner, result_str = super().run(strat1, strat2)
+
+                next_round.append(winner)
+                matches.append((strat1.__class__.__name__, strat2.__class__.__name__, result_str))
+
+            tree.append(matches)
+            players = next_round[:]  # מעבר לשלב הבא
+
+        # הדפסת סיכום כל הסיבובים
+        for round_number, round_games in enumerate(tree, start=1):
+            print(f"\nRound {round_number}:")
+            for game in round_games:
+                player1, player2, winner = game
+                print(f"  {player1} vs {player2} → Winner: {winner}")
+
+        # הכרזת האלוף
+        print(f"\nChampion: {players[0].__class__.__name__}")

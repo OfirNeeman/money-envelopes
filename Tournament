@@ -1,0 +1,158 @@
+import json
+import csv
+import statistics
+from envelope import Envelope
+from Game import Game, GameResult
+from strategy import RandomStrategy, StopAfterNOpensStrategy, BetterThanPercentStrategy, MaxAfterNStrategy
+
+
+class Tournament:
+    """
+    מחלקה לניהול טורניר בין אסטרטגיות שונות במשחק ה־Envelope Game.
+    
+    Attributes:
+        strategies (list): רשימת האסטרטגיות המשתתפות בטורניר.
+        mode (str): מצב הריצה (למשל, סימולציה, מבחן וכו').
+        results (dict): מילון עם סיכום תוצאות לכל אסטרטגיה:
+            - מספר נצחונות
+            - מספר משחקים ששוחקו
+            - לוג של כל המשחקים (log)
+    """
+
+    def __init__(self, strategies, mode):
+        """
+        אתחול הטורניר עם אסטרטגיות ומצב נתון.
+        
+        Args:
+            strategies (list): רשימת אובייקטי אסטרטגיה.
+            mode (str): מצב הריצה של הטורניר.
+        """
+        self.strategies = strategies
+        self.mode = mode
+        self.results = {
+            s.__class__.__name__: {"wins": 0, "games_played": 0}
+            for s in strategies
+        }
+        self.results["log"] = []
+
+    def run(self, strat1, strat2):
+        """
+        מריץ משחק יחיד בין שתי אסטרטגיות, מעדכן את התוצאות ושומר לוג.
+        
+        Args:
+            strat1: האסטרטגיה הראשונה.
+            strat2: האסטרטגיה השנייה.
+        
+        Returns:
+            tuple: (המנצח כאובייקט אסטרטגיה או None במקרה תיקו, שם המנצח או 'Draw')
+        """
+        # יצירת משחקים חדשים לכל אסטרטגיה
+        game1 = Game(strat1)
+        result1 = GameResult(game1)
+        game2 = Game(strat2)
+        result2 = GameResult(game2)
+
+        # איפוס לפני התחלת המשחק
+        game1.reset()
+        game2.reset()
+
+        # עדכון מספר משחקים ששוחקו
+        self.results[strat1.__class__.__name__]["games_played"] += 1
+        self.results[strat2.__class__.__name__]["games_played"] += 1
+
+        # קביעת מנצח
+        if result1.chosen_amount > result2.chosen_amount:
+            winner = strat1
+            result_str = strat1.__class__.__name__
+            self.results[winner.__class__.__name__]["wins"] += 1
+        elif result2.chosen_amount > result1.chosen_amount:
+            winner = strat2
+            result_str = strat2.__class__.__name__
+            self.results[winner.__class__.__name__]["wins"] += 1
+        else:
+            # במקרה תיקו – לשניהם נחשב נצחון
+            winner = None
+            result_str = "Draw"
+            self.results[strat1.__class__.__name__]["wins"] += 1
+            self.results[strat2.__class__.__name__]["wins"] += 1
+
+        # לוג המשחק
+        self.results["log"].append({
+            "player1": strat1.__class__.__name__,
+            "chosen1": result1.chosen_amount,
+            "player2": strat2.__class__.__name__,
+            "chosen2": result2.chosen_amount,
+            "winner": result_str
+        })
+
+        print(f"{strat1.__class__.__name__} vs {strat2.__class__.__name__} → Winner: {result_str}")
+        return winner, result_str
+
+    def get_stats(self):
+        """
+        מחשבת סטטיסטיקות סיכום לכל אסטרטגיה.
+        
+        Returns:
+            tuple:
+                - dict: סטטיסטיקות לכל אסטרטגיה:
+                    * מספר משחקים ששוחקו
+                    * מספר נצחונות
+                    * אחוז נצחונות
+                    * רווח ממוצע
+                    * עקביות (סטיית תקן)
+                - int: מספר המשחקים הכולל ששוחקו
+        """
+        stats = {}
+        total_games = sum(
+            v.get("games_played", 0)
+            for v in self.results.values()
+            if isinstance(v, dict)
+        )
+
+        for strat, data in self.results.items():
+            if strat == "log":
+                continue
+
+            wins = data["wins"]
+            games = data["games_played"]
+            profits = data.get("profits", [])
+
+            avg_profit = round(statistics.mean(profits), 2) if profits else 0
+            consistency = round(statistics.pstdev(profits), 2) if len(profits) > 1 else 0
+            win_rate = round(wins / games, 2) if games > 0 else 0
+
+            stats[strat] = {
+                "games_played": games,
+                "wins": wins,
+                "win_rate": win_rate,
+                "avg_profit": avg_profit,
+                "consistency": consistency
+            }
+
+        return stats, total_games
+
+    def save_log_json(self, filename):
+        """
+        שומר את לוג המשחקים כקובץ JSON.
+        
+        Args:
+            filename (str): שם הקובץ לשמירה.
+        """
+        with open(filename, "w") as f:
+            json.dump(self.results["log"], f, indent=4)
+
+    def save_log_csv(self, filename):
+        """
+        שומר את לוג המשחקים כקובץ CSV.
+        
+        Args:
+            filename (str): שם הקובץ לשמירה.
+        """
+        if not self.results["log"]:
+            return
+
+        keys = self.results["log"][0].keys()
+        with open(filename, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=keys)
+            writer.writeheader()
+            writer.writerows(self.results["log"])

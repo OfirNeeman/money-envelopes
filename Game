@@ -1,0 +1,43 @@
+from envelope import Envelope
+
+class Game:
+    """
+    מחלקה שמייצגת משחק בודד עם אסטרטגיה אחת.
+
+    Attributes:
+        strategy: האסטרטגיה שמשתמשת בשחקן במשחק זה.
+        result: התוצאה של המשחק לאחר הקריאה ל-play().
+    """
+
+    def __init__(self, strategy):
+        """
+        אתחול משחק עם אסטרטגיה נתונה.
+
+        Args:
+            strategy: אובייקט אסטרטגיה שתשחק במשחק.
+        """
+        self.strategy = strategy
+        self.result = None
+
+    def play(self):
+        """
+        מריץ את המשחק עם האסטרטגיה הנתונה.
+
+        Returns:
+            התוצאה שהאסטרטגיה בחרה (תוצאה של play() באסטרטגיה).
+        """
+        self.result = self.strategy.play()
+        return self.result
+
+    def reset(self):
+        """
+        מאפס את מצב המשחק והאסטרטגיה:
+            - יוצר 100 מעטפות חדשות ומקצה אותן לאסטרטגיה.
+            - מאפס את התוצאה של המשחק ל־None.
+        """
+        envelopes = []
+        for i in range(100):
+            envelopes.append(Envelope())
+        self.strategy.envelopes = envelopes
+        self.result = None
+

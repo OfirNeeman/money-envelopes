@@ -1,0 +1,47 @@
+from envelope import Envelope
+
+class GameResult:
+    """
+    מחלקה שמייצגת את התוצאה של משחק בודד.
+
+    Attributes:
+        chosen_amount (int | float): הסכום שבמעטפה שנבחרה על ידי האסטרטגיה.
+        max_amount (int | float): הסכום הגבוה ביותר מבין כל המעטפות.
+        steps (int): מספר המעטפות שנפתחו עד הבחירה.
+        success (bool): האם הבחירה הייתה במעטפה בעלת הסכום הגבוה ביותר.
+        ratio (float): היחס בין מספר המעטפות שנפתחו לבין כלל המעטפות.
+    """
+
+    def __init__(self, game):
+        """
+        יוצר אובייקט תוצאה ממשחק נתון.
+
+        Args:
+            game (Game): המשחק שממנו מחושבת התוצאה.
+        """
+        chosen_envelope, opened_count = game.play()
+        self.chosen_amount = chosen_envelope.amount
+        self.max_amount = self.find_max_envelope(game.strategy.envelopes)
+        self.steps = opened_count
+        self.success = (self.max_amount == chosen_envelope.amount)
+        self.ratio = opened_count / len(game.strategy.envelopes)
+
+    def find_max_envelope(self, envelopes):
+        """
+        מוצא את המעטפה עם הסכום הגבוה ביותר מתוך רשימת מעטפות.
+
+        Args:
+            envelopes (list[Envelope]): רשימת המעטפות במשחק.
+
+        Returns:
+            int | float: הסכום הגבוה ביותר שנמצא.
+        """
+        max_envelope = envelopes[0]
+        max_amount = max_envelope.amount
+        i = 1
+        while i < len(envelopes):
+            if envelopes[i].amount > max_amount:
+                max_envelope = envelopes[i]
+                max_amount = envelopes[i].amount
+            i += 1
+        return max_amount
